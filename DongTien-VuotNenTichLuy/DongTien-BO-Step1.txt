@@ -1,0 +1,50 @@
+// Number of shares
+MinVolume = 20000;
+
+/* Minimum value over all orders, 1 means a thoursand */
+MinValue = 200000;
+
+// Maximum value over all orders, 0 means not applying
+MaxValue = 0;
+
+/* Number of days to be tested */
+NumberOfDays = 5;
+
+// The MA style (10, 20 or 30...)
+MADays = 10;
+
+/* Close price today must be above MA10, and in number of given days must above MA10 also */
+IsCloseOverMA = C > MA(C, MADays);
+
+for(counter = 1; counter < NumberOfDays; counter++) {
+	IsCloseOverMA = IsCloseOverMA AND Ref(C, 0-counter) > MA(C, MADays);
+}
+
+/* Low price must be lower than MA10 at leat one time */
+IsLowUnderMA = L < MA(C, MADays);
+
+for(counter = 1; counter < NumberOfDays; counter++) {
+	IsLowUnderMA = IsLowUnderMA OR Ref(L, 0-counter) < MA(C, MADays);
+}
+
+// Today must be a up session (Close > Open or Close > Yesterday closed)
+IsGoodClose = C >= O OR C >= Ref(C, -1);
+
+IsGoodVolume = V >= MinVolume;
+
+IsGoodValue = (V * C) >= MinValue AND (MaxValue == 0 OR V * C <= MaxValue);
+
+ChangePctg = (C - Ref(Close, -1)) / C * 100;
+
+ChangePctg10 = (C - MA(Close, 10)) / C * 100;
+
+Filter = IsCloseOverMA AND IsLowUnderMA AND IsGoodClose AND IsGoodVolume AND IsGoodValue;
+
+AddColumn(Ref(Close, -1), "Close -1");
+AddColumn(Open, "Open today");
+AddColumn(Close, "Close today");
+AddColumn(L, "Low today");
+AddColumn(H, "High today");
+AddColumn(ChangePctg, "Change %");
+AddColumn(ChangePctg10, "Change MA10 %");
+AddColumn(Volume, "Volume today");
